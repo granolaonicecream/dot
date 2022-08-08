@@ -1,0 +1,53 @@
+Config { font = "xft:JetBrainsMono Nerd Font:pixelsize=16,Noto Color Emoji:pixelsize=16"
+       , additionalFonts = [ "xft:siji:pixelsize=16"
+                           , "xft:Font Awesome 6 Free Solid:pixelsize=16,Font Awesome 6 Brands:pixelsize=16"
+                           ]
+       , borderColor = "black"
+       , border = NoBorder
+       , bgColor = "#250e06"
+       , fgColor = "grey"
+       , alpha = 255
+       , position = Top
+       , textOffset = -1
+       , iconOffset = -1
+       , lowerOnStart = True
+       , pickBroadest = False
+       , persistent = False
+       , hideOnStart = False
+       , iconRoot = "/home/archie/"
+       , allDesktops = True
+       , overrideRedirect = True , commands = [ 
+--                    , Run Network "eno1" ["-L","0","-H","32",
+--                                          "--normal","green","--high","red"] 10
+                 -- Run Cpu ["-L","3","-H","50",
+--                               "--normal","green","--high","red"] 10
+                    Run MultiCpu [
+                         "-t", "<fn=2>\xf2db</fn> <total>%",
+                         "-m", "2",
+                         "-L", "10",
+                         "-H", "70",
+                         "--high", "#FFB6B0"
+                         ] 10
+                    , Run Memory ["-m", "2", "-t","<box type=Bottom><fn=2>\xf538</fn> <usedratio>%</box>", "--High", "70", "--high", "#FFB6B0"] 10
+--                    , Run TopMem [] 10
+--                    , Run TopProc [] 10
+                   -- , Run Swap ["-t", "<usedratio>%"] 10
+                    , Run Date "<fn=2>\xf073</fn> %b %d <fn=2>\xf017</fn> %H:%M" "date" 10
+--                    , Run Alsa "default" "Master" ["-t", "<status> <volumevbar>", "--", "--on", "<fn=1>\xe053</fn>", "--off", "<fn=1>\xe052</fn>"]
+--                    , Run Com "/home/archie/scripts/moc-helper.sh" [] "moc" 50
+--                    , Run Com "/home/archie/scripts/nvme-temp.sh" [] "nvmetemp" 50
+                    , Run Com "/bin/bash" ["/home/archie/scripts/updatehelper.sh", "preview"] "up" 36000
+                    , Run UnsafeXPropertyLog "_XMONAD_LOG_2"
+                    ]
+       , sepChar = "%"
+       , alignSep = "}{"
+       , template = " <icon=logo2.xpm/> %_XMONAD_LOG_2% }{ \
+                     \<box type=Full color=#a15501><fc=#d0902f,#351409:0> \
+                     --  \<action=`~/scripts/updatehelper.sh`>%up%</action> \
+                       \%multicpu% \
+                       \<action=`~/scripts/dunst-mem.sh`>%memory%</action> \
+                     \</fc></box> \
+                     \<box type=Full color=#a15501><fc=#d0902f,#351409:0> \
+                       \<action=`gsimplecal` button=1>%date%</action> \
+                     \</fc></box> "
+       }

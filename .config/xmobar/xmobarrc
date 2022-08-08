@@ -1,0 +1,53 @@
+Config { font = "xft:JetBrainsMono Nerd Font:pixelsize=16,Noto Color Emoji:pixelsize=16"
+       , additionalFonts = [ "xft:siji:pixelsize=16"
+                           , "xft:Font Awesome 6 Free Solid:pixelsize=16,Font Awesome 6 Brands:pixelsize=16"
+                           ]
+       , borderColor = "black"
+       , border = NoBorder
+       , bgColor = "#250e06"
+--       , bgColor = "#1f1f1f"
+       , fgColor = "grey"
+       , alpha = 255
+       , position = Top
+       , textOffset = -1
+       , iconOffset = -1
+       , lowerOnStart = True
+       , pickBroadest = False
+       , persistent = False
+       , hideOnStart = False
+       , iconRoot = "/home/archie/"
+       , allDesktops = True
+       , overrideRedirect = True
+       , commands = [ 
+                    Run MultiCpu [
+                         "-t", "<box type=Bottom><fn=2>\xf2db</fn> <total>%</box>",
+                         "-m", "2",
+                         "-L", "10",
+                         "-H", "70",
+                         "--high", "#FFB6B0"
+                         ] 10
+                    , Run Memory ["-m", "2", "-t","<fn=2>\xf538</fn> <fc=#a15501><usedratio>%</fc>", "--High", "70", "--high", "#FFB6B0"] 10
+--                    , Run TopMem [] 10
+                   -- , Run Swap ["-t", "<usedratio>%"] 10
+                    , Run Date "<fn=2>\xf073</fn> %b %d <fn=2>\xf017</fn> %H:%M" "date" 10
+                    , Run Com "/bin/bash" ["/home/archie/scripts/novideo-stats.sh"] "grafix" 100
+                    , Run Com "/home/archie/scripts/trayer-padding-icon.sh" [] "trayerpad" 10
+--                    , Run Alsa "default" "Master" ["-t", "<status> <volumevbar>", "--", "--on", "<fn=1>\xe053</fn>", "--off", "<fn=1>\xe052</fn>"]
+--                    , Run Com "/home/archie/scripts/moc-helper.sh" [] "moc" 50
+--                    , Run Com "/home/archie/scripts/nvme-temp.sh" [] "nvmetemp" 50
+                    , Run UnsafeXPropertyLog "_XMONAD_LOG_1"
+                    , Run XPropertyLog "_UPDATES_PENDING"
+--                    , Run Com "/bin/bash" ["/home/archie/scripts/updatehelper.sh", "preview"] "up" 36000
+                    ]
+       , sepChar = "%"
+       , alignSep = "}{"
+       , template = " <icon=logo2.xpm/> %_XMONAD_LOG_1% }{ \
+                    \<box type=Full color=#a15501><fc=#d0902f,#351409:0> \
+                      \<action=`~/scripts/updatehelper.sh`>%_UPDATES_PENDING%</action> \
+                      \%multicpu% <action=`~/scripts/dunst-mem.sh`>%memory%</action> %grafix% \
+                    \</fc></box> \
+                    \<box type=Full color=#a15501><fc=#d0902f,#351409:0> \
+                      \<action=`gsimplecal` button=1>%date%</action> \
+                    \</fc></box> \
+                    \%trayerpad%"
+       }
