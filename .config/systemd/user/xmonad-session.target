@@ -1,0 +1,5 @@
+
+[Unit]
+Description=User systemd services for XMonad
+Wants=pendingUpdates.service
+BindsTo=graphical-session.target

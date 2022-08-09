@@ -1,0 +1,14 @@
+# Service to call my update helper script
+# Should be used by a timer
+
+[Unit]
+Description=Caches pending pacman updates to a file
+Wants=pendingUpdates.timer
+
+[Service]
+Type=oneshot
+ExecStart=/home/archie/scripts/updatehelper.sh check
+
+[Install]
+WantedBy=graphical-session.target
+#WantedBy=default.target

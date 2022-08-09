@@ -1,0 +1,13 @@
+# Run the update checker every hour
+
+[Unit]
+Description=Check updates every hour
+Requires=pendingUpdates.service
+PartOf=xmonad-session.target
+
+[Timer]
+Unit=pendingUpdates.service
+OnCalendar=*-*-* *:00:00
+
+#[Install]
+#WantedBy=timers.target
