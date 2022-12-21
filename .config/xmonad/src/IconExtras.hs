@@ -179,16 +179,16 @@ group n l
 
 -- Create actual codepoints for valid colors
 -- An easy way to create codepoints is base conversion
--- This encodes Ints into base 57 using the ASCII range 'A' to 'z'
+-- This encodes Ints into base 58 using the ASCII range 'A' to 'z'
 -- Reminder that XPM codepoints must all have the same length
 createCodePoints :: XPMCache -> Int -> (XPMResolvedCache, Int)
 createCodePoints cache maxValue = (Map.map (leftPad . encInt) cache, nDigits)
-  where encInt i = showIntAtBase 57 intToDigit i ""
+  where encInt i = showIntAtBase 58 intToDigit i ""
         intToDigit i = [ 'A' .. 'z' ] !! i  -- probably not efficient
         nDigits = length $ encInt maxValue
         leftPad s = replicate (nDigits - length s) identityCodepoint ++ s
 
--- The zero of our base 57 encoding
+-- The zero of our base 58 encoding
 identityCodepoint :: Char
 identityCodepoint = 'A'
 
