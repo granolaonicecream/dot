@@ -8,9 +8,9 @@ Icons are scaled using the haskell-image-processing (hip) library.
 -}
 module IconExtras (writeWindowIcon,iconCleanupHook) where
 
-import Foreign.C (CUShort (CUShort), CUInt (CUInt))
+import Foreign.C (CUChar (CUChar), CChar, CUInt)
 import XMonad
-import XMonad.Prelude (fi, All (All)) -- convenience; there's lots of C Types and Word types around
+import XMonad.Prelude (fi, All (All), isPrefixOf) -- convenience; there's lots of C Types and Word types around
 import XMonad.Util.WindowProperties (getProp32)
 import Control.Monad.State ( unless, when, evalState, State )
 import Text.Printf ( printf )
@@ -22,7 +22,8 @@ import qualified Data.Map as Map
 import Numeric (showIntAtBase)
 import Graphics.Image (Pixel(PixelRGBA))
 import qualified Graphics.Image as I
-import System.Directory (doesFileExist, removeFile, getXdgDirectory, XdgDirectory (XdgCache), createDirectoryIfMissing)
+import System.Directory (removeFile, getXdgDirectory, XdgDirectory (XdgCache), createDirectoryIfMissing, listDirectory)
+import qualified Codec.Binary.UTF8.String as UTF8
 
 {-
 $usage
@@ -62,16 +63,22 @@ initBaseDirectory = do
   createDirectoryIfMissing False path
   return path
 
--- |An Event Hook to delete an icon file when a Window is closed
+-- |An Event Hook to delete icon files when a Window is closed.
+--  By default, there are two destroy calls for a window, so we pick one.
+--  Currently this scans for files by Window prefix, but could be simplified if
+--  file path was deterministic by the Window ID (e.g. ExtensibleState)
 iconCleanupHook :: Event -> X All
-iconCleanupHook DestroyWindowEvent { ev_window = w } = do
-  baseDir <- io initBaseDirectory
-  let filepath = printf "%s/%d.xpm" baseDir (fi w :: Integer)
-  exists <- io $ doesFileExist filepath
-  when exists $ io $ do
-    when debug $ trace $ "Removing file " ++ filepath
-    removeFile filepath
-  return (All True)
+iconCleanupHook DestroyWindowEvent { ev_window = w, ev_event = ev } =
+  if w == ev then do
+    baseDir <- io initBaseDirectory
+    let matches f = show w `isPrefixOf` f
+        toAbsolute = printf "%s/%s" baseDir
+    files <- io $ filter matches <$> listDirectory baseDir
+    unless (null files) $ io $ do
+      when debug $ trace $ "Removing files " ++ show files
+      mapM_ removeFile $ toAbsolute <$> files
+    return (All True)
+  else return (All True)
 iconCleanupHook _ = return (All True)
 
 -- Take a stream of ARGB data (from _NET_WM_ICON) and make an image using HIP
@@ -86,39 +93,64 @@ shrink = I.resize I.Nearest I.Edge
 -- Reverse operation to get ARGB data back out of the HIP image
 imageToRaw :: I.Image I.VS I.RGBA I.Word8 -> [[ARGB]]
 imageToRaw img = (map . map) pixelToRGB $ I.toLists img
-  where pixelToRGB (PixelRGBA r g b a) = (CUShort (fi a),CUInt (fi r),CUInt (fi g), CUInt (fi b))
+  where pixelToRGB (PixelRGBA r g b a) = (CUChar (fi a),CUChar (fi r),CUChar (fi g), CUChar (fi b))
 
 -- |Retrieve, scale, and write a Window's icon to an XPM file.
+--  Filepaths must be unique enough since xmobar doesn't empty its icon cache.
+--  The file name strategy is based on (Window, className) since technically each Window could set 
+--  its own icon, but typically every window in a class has the same icon IME.
 writeWindowIcon :: (Int,Int)          -- ^ The desired target dimensions to scale the icon
                 -> Window             -- ^ The Window to retrieve the icon data from
                 -> X (Maybe FilePath) -- ^ The FilePath that was written, or Nothing if there was no icon
 writeWindowIcon (targetWidth, targetHeight) w = do
-  baseDir <- io initBaseDirectory
-  let filepath = printf "%s/%d.xpm" baseDir (fi w :: Integer)
-  alreadyExists <- io $ doesFileExist filepath
-  if not alreadyExists then do
+  cachedFilepath <- getCachedProp w
+  if null cachedFilepath then do
     wm_icon <- getAtom "_NET_WM_ICON"
     raw <- fromMaybe [] <$> getProp32 wm_icon w
     -- Assume if there's data, it's valid
     if length raw > 2 then do
-      let asints = fi <$> raw :: [CUInt]
+      baseDir <- io initBaseDirectory
+      cName <- runQuery className w
+      let filepath = printf "%s/%d-%s.xpm" baseDir (fi w :: Integer) cName
+          asints = fi <$> raw :: [CUInt]
           [width,height] = take 2 asints
           -- There could be multiple icons the xprop. Just pick the first one for now
-          rawPixels = take (fi width * fi height) $ drop 2 asints 
+          rawPixels = take (fi width * fi height) $ drop 2 asints
           rgbaPixels = parseRGBA <$> rawPixels
           img = shrink (targetWidth, targetHeight) $ imageFromRaw (fi width) rgbaPixels
           scaled = imageToRaw img
           xpm = makeXPM targetWidth targetHeight scaled
       when debug $ trace $ "Writing file " ++ filepath
       io $ writeFile filepath (unlines $ xpmToLines xpm)
-      --io $ I.displayImage img -- Useful for debugging. Shows the image as a TIF
+      writeCachedProp w filepath
+      --io $ I.displayImage img -- Useful for debugging. Shows the image as a TIF using external program
       return $ Just filepath
     else return Nothing
-  else return $ Just filepath
+  else return $ Just cachedFilepath
+
+-- External storage of the filepath if it's not deterministic by just the Window ID.
+-- Get the cached filepath from the Window
+getCachedProp :: Window -> X String
+getCachedProp w = do
+  d <- asks display
+  cacheAtom <- getAtom "_CACHED_ICON_PATH"
+  fp <- io $ fromMaybe [] <$> getWindowProperty8 d cacheAtom w
+  return (UTF8.decode . map fi $ fp)
+
+-- Write a filepath to the Window's _CACHED_ICON_PATH
+writeCachedProp :: Window -> String -> X ()
+writeCachedProp w fp = do
+    d <- asks display
+    cacheAtom <- getAtom "_CACHED_ICON_PATH"
+    ustring <- getAtom "UTF8_STRING"
+    io $ changeProperty8 d w cacheAtom ustring propModeReplace (encodeCChar fp)
+ where
+    encodeCChar :: String -> [CChar]
+    encodeCChar = map fromIntegral . UTF8.encode
 
 -- Grab the low byte from CUInt
-lowbyte :: CUInt -> CUInt
-lowbyte i = i .&. 0x000000FF
+lowbyte :: CUInt -> CUChar
+lowbyte i = fi $ i .&. 0x000000FF
 
 -- Parse/convert the raw ARGB to an ARGB tuple
 parseRGBA :: CUInt -> ARGB
@@ -129,9 +161,9 @@ parseRGBA raw = (a,r,g,b)
         a = fi $ lowbyte (shiftR raw 24)
 -- Types
 -- ARGB tuple, in that order
-type ARGB = (CUShort, CUInt, CUInt, CUInt)
+type ARGB = (CUChar, CUChar, CUChar, CUChar)
 -- RGB tuple, in that order
-type RGB  = (CUInt, CUInt, CUInt)
+type RGB  = (CUChar, CUChar, CUChar)
 -- The XPM contents object
 data XPM = XPM { _height :: Int
                , _width :: Int
@@ -165,9 +197,9 @@ mapPixelsToCodepoints cps trans row = printf "\"%s\"" $ concatMap bar row
 
 -- Simple RGB tuple assembled back into a CUInt
 rgbToHex :: RGB -> CUInt
-rgbToHex (r,g,b) = b + g' + r'
-  where g' = shiftL g 8
-        r' = shiftL r 16
+rgbToHex (r,g,b) = fi b + g' + r'
+  where g' = shiftL (fi g) 8
+        r' = shiftL (fi r) 16
 
 -- Chunk pixels into width
 -- Copied from SO
