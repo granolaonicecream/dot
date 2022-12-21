@@ -1,0 +1,43 @@
+cradle:
+  stack:
+    - path: "./src/xmonad.hs"
+      component: "xmonadrc:exe:xmonadrc"
+
+    - path: "./src/EwmhExtras.hs"
+      component: "xmonadrc:exe:xmonadrc"
+
+    - path: "./src/XmobarExtras.hs"
+      component: "xmonadrc:exe:xmonadrc"
+
+    - path: "./src/Colors.hs"
+      component: "xmonadrc:exe:xmonadrc"
+
+    - path: "./src/QTileColumns.hs"
+      component: "xmonadrc:exe:xmonadrc"
+
+    - path: "./src/Palette.hs"
+      component: "xmonadrc:exe:xmonadrc"
+
+    - path: "./src/IconExtras.hs"
+      component: "xmonadrc:exe:xmonadrc"
+
+    - path: "./src/Paths_xmonadrc.hs"
+      component: "xmonadrc:exe:xmonadrc"
+
+    - path: "xmonad/src"
+      component: "xmonad:lib"
+
+    - path: "xmonad/./Main.hs"
+      component: "xmonad:exe:xmonad"
+
+    - path: "xmonad/tests"
+      component: "xmonad:test:properties"
+
+    - path: "xmonad-contrib/./"
+      component: "xmonad-contrib:lib"
+
+    - path: "xmonad-contrib/tests"
+      component: "xmonad-contrib:test:tests"
+
+    - path: "xmonad-contrib/."
+      component: "xmonad-contrib:test:tests"

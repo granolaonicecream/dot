@@ -1,6 +1,6 @@
-Config { font = "xft:JetBrainsMono Nerd Font:pixelsize=16,Noto Color Emoji:pixelsize=16"
-       , additionalFonts = [ "xft:siji:pixelsize=16"
-                           , "xft:Font Awesome 6 Free Solid:pixelsize=16,Font Awesome 6 Brands:pixelsize=16"
+Config { font = "TerminessTTF Nerd Font, Noto Color Emoji Regular 12,monospace 13, Regular 13"
+       , additionalFonts = [ "siji Regular 15"
+                           , "Font Awesome 6 Free Solid,Font Awesome 6 Brands Regular 11, Regular 11"
                            ]
        , borderColor = "black"
        , border = NoBorder
@@ -8,7 +8,8 @@ Config { font = "xft:JetBrainsMono Nerd Font:pixelsize=16,Noto Color Emoji:pixel
 --       , bgColor = "#1f1f1f"
        , fgColor = "grey"
        , alpha = 255
-       , position = Top
+--       , position = Top
+       , position = Static { xpos = 0, ypos = 0, width = 2559, height = 20 }
        , textOffset = -1
        , iconOffset = -1
        , lowerOnStart = True
@@ -20,7 +21,7 @@ Config { font = "xft:JetBrainsMono Nerd Font:pixelsize=16,Noto Color Emoji:pixel
        , overrideRedirect = True
        , commands = [ 
                     Run MultiCpu [
-                         "-t", "<box type=Bottom><fn=2>\xf2db</fn> <total>%</box>",
+                         "-t", "<fn=2>\xf2db</fn> <total>%",
                          "-m", "2",
                          "-L", "10",
                          "-H", "70",
@@ -41,10 +42,10 @@ Config { font = "xft:JetBrainsMono Nerd Font:pixelsize=16,Noto Color Emoji:pixel
                     ]
        , sepChar = "%"
        , alignSep = "}{"
-       , template = " <icon=logo2.xpm/> %_XMONAD_LOG_1% }{ \
+       , template = " <icon=logo.xpm/> %_XMONAD_LOG_1% }{ \
                     \<box type=Full color=#a15501><fc=#d0902f,#351409:0> \
                       \<action=`~/scripts/updatehelper.sh`>%_UPDATES_PENDING%</action> \
-                      \%multicpu% <action=`~/scripts/dunst-mem.sh`>%memory%</action> %grafix% \
+                      \%multicpu% <action=`alacritty -e btop`>%memory%</action> %grafix% \
                     \</fc></box> \
                     \<box type=Full color=#a15501><fc=#d0902f,#351409:0> \
                       \<action=`gsimplecal` button=1>%date%</action> \

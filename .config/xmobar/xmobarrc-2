@@ -1,13 +1,15 @@
-Config { font = "xft:JetBrainsMono Nerd Font:pixelsize=16,Noto Color Emoji:pixelsize=16"
-       , additionalFonts = [ "xft:siji:pixelsize=16"
-                           , "xft:Font Awesome 6 Free Solid:pixelsize=16,Font Awesome 6 Brands:pixelsize=16"
+Config { font = "TerminessTTF Nerd Font, Noto Color Emoji Regular 12,monospace 13, Regular 13"
+       , additionalFonts = [ "siji Regular 15"
+                           , "Font Awesome 6 Free Solid,Font Awesome 6 Brands Regular 11, Regular 11"
                            ]
        , borderColor = "black"
        , border = NoBorder
        , bgColor = "#250e06"
+--       , bgColor = "#FF0000"
        , fgColor = "grey"
        , alpha = 255
-       , position = Top
+--       , position = Top
+       , position = Static { xpos = 2560, ypos = 0, width = 2559, height = 20 }
        , textOffset = -1
        , iconOffset = -1
        , lowerOnStart = True
@@ -17,10 +19,6 @@ Config { font = "xft:JetBrainsMono Nerd Font:pixelsize=16,Noto Color Emoji:pixel
        , iconRoot = "/home/archie/"
        , allDesktops = True
        , overrideRedirect = True , commands = [ 
---                    , Run Network "eno1" ["-L","0","-H","32",
---                                          "--normal","green","--high","red"] 10
-                 -- Run Cpu ["-L","3","-H","50",
---                               "--normal","green","--high","red"] 10
                     Run MultiCpu [
                          "-t", "<fn=2>\xf2db</fn> <total>%",
                          "-m", "2",
@@ -28,7 +26,7 @@ Config { font = "xft:JetBrainsMono Nerd Font:pixelsize=16,Noto Color Emoji:pixel
                          "-H", "70",
                          "--high", "#FFB6B0"
                          ] 10
-                    , Run Memory ["-m", "2", "-t","<box type=Bottom><fn=2>\xf538</fn> <usedratio>%</box>", "--High", "70", "--high", "#FFB6B0"] 10
+                    , Run Memory ["-m", "2", "-t","<fn=2>\xf538</fn> <usedratio>%", "--High", "70", "--high", "#FFB6B0"] 10
 --                    , Run TopMem [] 10
 --                    , Run TopProc [] 10
                    -- , Run Swap ["-t", "<usedratio>%"] 10
@@ -41,13 +39,12 @@ Config { font = "xft:JetBrainsMono Nerd Font:pixelsize=16,Noto Color Emoji:pixel
                     ]
        , sepChar = "%"
        , alignSep = "}{"
-       , template = " <icon=logo2.xpm/> %_XMONAD_LOG_2% }{ \
+       , template = " <icon=logo.xpm/> %_XMONAD_LOG_2% }{ \
                      \<box type=Full color=#a15501><fc=#d0902f,#351409:0> \
-                     --  \<action=`~/scripts/updatehelper.sh`>%up%</action> \
                        \%multicpu% \
-                       \<action=`~/scripts/dunst-mem.sh`>%memory%</action> \
+                       \<action=`alacritty -e btop`>%memory%</action> \
                      \</fc></box> \
-                     \<box type=Full color=#a15501><fc=#d0902f,#351409:0> \
+                     \<box type=Full color=#a15501><fc=#d0902f,#351409:0> <icon=logo2.xpm/> \
                        \<action=`gsimplecal` button=1>%date%</action> \
                      \</fc></box> "
        }

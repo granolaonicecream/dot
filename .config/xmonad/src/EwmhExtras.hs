@@ -7,7 +7,7 @@
 --  support for ignoring the default ewmhFullscreen event 
 --  hook in favor of using the default xmonad fullscreen
 
-module Local.EwmhExtras (
+module EwmhExtras (
     ewmhFullscreen',
     toggleNoEwmhFullscreen
 ) where
@@ -51,12 +51,10 @@ fullscreenEventHook' (ClientMessageEvent _ _ _ dpy win typ (action:dats)) = do
   when (managed && typ == wmstate && fi fullsc `elem` dats) $ do
     when (action == add || (action == toggle && not isFull)) $ do
       chWstate (fi fullsc:)
-      unless overrideFull $ do
-          windows $ W.float win $ W.RationalRect 0 0 1 1
+      unless overrideFull $ windows $ W.float win $ W.RationalRect 0 0 1 1
     when (action == remove || (action == toggle && isFull)) $ do
       chWstate $ delete (fi fullsc)
-      unless overrideFull $ do
-          windows $ W.sink win
+      unless overrideFull $ windows $ W.sink win
 
   return $ All True
 
@@ -75,7 +73,7 @@ toggleNoEwmhFullscreen win = do
   if overrideFull
     then do 
         io $ deleteProperty d win noEwmh
-	spawn $ printf "dunstify -i preferences-desktop-display-symbolic.symbolic 'Enabled EWMH fullscreen for %s (%s)' -h string:x-dunst-stack-tag:fs%s" cName (show win) (show win)
+        spawn $ printf "dunstify -i preferences-desktop-display-symbolic.symbolic 'Enabled EWMH fullscreen for %s (%s)' -h string:x-dunst-stack-tag:fs%s" cName (show win) (show win)
     else do
-	io $ changeProperty32 d win noEwmh cARDINAL propModeReplace [fromIntegral 1]
-	spawn $ printf "dunstify -i preferences-desktop-display-symbolic.symbolic 'Disabled EWMH fullscreen for %s (%s)' -h string:x-dunst-stack-tag:fs%s" cName (show win) (show win)
+        io $ changeProperty32 d win noEwmh cARDINAL propModeReplace [fromIntegral 1]
+        spawn $ printf "dunstify -i preferences-desktop-display-symbolic.symbolic 'Disabled EWMH fullscreen for %s (%s)' -h string:x-dunst-stack-tag:fs%s" cName (show win) (show win)
