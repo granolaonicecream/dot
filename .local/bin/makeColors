@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# Make sure we're working in the correct directory
+xmonadDir=$HOME/.config/xmonad
+
+# If template does not exist, error out
+template="$xmonadDir/colorTemplate"
+if [ ! -f "$template" ]; then
+	echo "Color template file '$template' is missing. Exiting." >&2
+	exit 1
+fi
+
+cached="$xmonadDir/.makeColors.cache"
+shouldRun=true
+if [ -f $cached ]; then
+	lastGenerated=$(cat $cached)
+	lastModified=$(date +%s -r $HOME/.Xresources)
+	if [ $lastGenerated -ge $lastModified ]; then
+		shouldRun=false
+	fi
+fi	
+
+if [ "$shouldRun" = false ]; then
+	echo "No change in .Xresources since last Colors.hs generation. Skipping."
+	exit 0
+fi
+
+# Make sure xrdb is up to date
+xrdb $HOME/.Xresources
+
+# Might need actual named colors later
+colors=(color1 color2 color3 color4 color5)
+
+sedCmd=""
+for color in ${colors[@]}; do
+	value=$(xrdb -q | grep $color | cut -f 2)
+	if [ -z $value ]; then echo "No value for $color"; continue; fi
+	sedCmd+="s/%$color%/$value/g;"
+done
+
+#echo "$sedCmd"
+echo "Creating new Colors.hs from xrdb query"
+date +%s > $cached
+sed "$sedCmd" $template > $xmonadDir/src/Colors.hs
